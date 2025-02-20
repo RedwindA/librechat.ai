@@ -42,6 +42,20 @@ For more info see:
   ]}
 />
 
+### Trust proxy
+Use the address that is at most n number of hops away from the Express application. 
+req.socket.remoteAddress is the first hop, and the rest are looked for in the X-Forwarded-For header from right to left. 
+A value of 0 means that the first untrusted address would be req.socket.remoteAddress, i.e. there is no reverse proxy.
+The `TRUST_PROXY` environment variable default is set to `1`.
+
+Refer to [Express.js - trust proxy](https://expressjs.com/en/guide/behind-proxies.html) for more information about this.
+
+<OptionTable
+  options={[
+    ['TRUST_PROXY', 'number', 'Specifies the number of hops.', 'HOST=1'],
+  ]}
+/>
+
 ### Static File Handling
 
 <OptionTable
@@ -152,6 +166,7 @@ LibreChat has built-in central logging, see [Logging System](/docs/configuration
     ['DEBUG_LOGGING', 'boolean', 'Keep debug logs active.','DEBUG_LOGGING=true'],
     ['DEBUG_CONSOLE', 'boolean', 'Enable verbose console/stdout logs in the same format as file debug logs.', 'DEBUG_CONSOLE=false'],
     ['CONSOLE_JSON', 'boolean', 'Enable verbose JSON console/stdout logs suitable for cloud deployments like GCP/AWS.', 'CONSOLE_JSON=false'],
+    ['CONSOLE_JSON_STRING_LENGTH', 'number', 'Configure the truncation size for console/stdout logs, defaults to 255', 'CONSOLE_JSON_STRING_LENGTH=1000'],
   ]}
 />
 
@@ -261,6 +276,7 @@ Follow these instructions to setup the [Google Endpoint](/docs/configuration/pre
     ['GOOGLE_MODELS', 'string', 'Available Vertex AI Google models, separated by commas.', 'GOOGLE_MODELS=gemini-1.5-pro-preview-0409,gemini-1.0-pro-vision-001,gemini-pro,gemini-pro-vision,chat-bison,chat-bison-32k,codechat-bison,codechat-bison-32k,text-bison,text-bison-32k,text-unicorn,code-gecko,code-bison,code-bison-32k'],
     ['GOOGLE_TITLE_MODEL', 'string', 'The model used for titling with Google.', 'GOOGLE_TITLE_MODEL=gemini-pro'],
     ['GOOGLE_LOC', 'string', 'Specifies the Google Cloud location for processing API requests', 'GOOGLE_LOC=us-central1'],
+    ['GOOGLE_EXCLUDE_SAFETY_SETTINGS', 'string', 'Completely omit the safety settings that are included by default, which will use provider defaults', 'GOOGLE_EXCLUDE_SAFETY_SETTINGS=true'],
     ['GOOGLE_SAFETY_SEXUALLY_EXPLICIT', 'string', 'Safety setting for sexually explicit content. Options are BLOCK_ALL, BLOCK_ONLY_HIGH, WARN_ONLY, and OFF.', 'GOOGLE_SAFETY_SEXUALLY_EXPLICIT=BLOCK_ONLY_HIGH'],
     ['GOOGLE_SAFETY_HATE_SPEECH', 'string', 'Safety setting for hate speech content. Options are BLOCK_ALL, BLOCK_ONLY_HIGH, WARN_ONLY, and OFF.', 'GOOGLE_SAFETY_HATE_SPEECH=BLOCK_ONLY_HIGH'],
     ['GOOGLE_SAFETY_HARASSMENT', 'string', 'Safety setting for harassment content. Options are BLOCK_ALL, BLOCK_ONLY_HIGH, WARN_ONLY, and OFF.', 'GOOGLE_SAFETY_HARASSMENT=BLOCK_ONLY_HIGH'],
@@ -602,6 +618,14 @@ This master key must be at least 16 bytes, composed of valid UTF-8 characters. M
   ]}
 />
 
+To prevent LibreChat from attempting a database indexing sync with Meilisearch, you can set the following environment variable to `true`. This is useful in a node cluster, or multi-node setup, where only one instance should be responsible for indexing.
+
+<OptionTable
+  options={[
+    ['MEILI_NO_SYNC', 'string', 'Toggle for disabling Mellisearch index sync','MEILI_NO_SYNC=true'],
+  ]}
+/>
+
 ## User System
 This section contains the configuration for:
 
@@ -760,6 +784,21 @@ Use this replit to generate some quickly: **[JWT Keys](/toolkit/creds_generator)
 ### Social Logins
 For more details: [OAuth2-OIDC](/docs/configuration/authentication/OAuth2-OIDC)
 
+#### [Apple Authentication](/docs/configuration/authentication/OAuth2-OIDC/apple)
+
+For more information: **[Apple Authentication](/docs/configuration/authentication/OAuth2-OIDC/apple)**
+
+<OptionTable
+  options={[
+    ['APPLE_CLIENT_ID', 'string', 'Your Apple Services ID (e.g., com.yourdomain.librechat.services).', 'APPLE_CLIENT_ID=com.yourdomain.librechat.services'],
+    ['APPLE_TEAM_ID', 'string', 'Your Apple Developer Team ID.', 'APPLE_TEAM_ID=YOUR_TEAM_ID'],
+    ['APPLE_KEY_ID', 'string', 'Your Apple Key ID from the downloaded key.', 'APPLE_KEY_ID=YOUR_KEY_ID'],
+    ['APPLE_PRIVATE_KEY_PATH', 'string', 'Absolute path to your downloaded .p8 file.', 'APPLE_PRIVATE_KEY_PATH=/path/to/AuthKey.p8'],
+    ['APPLE_CALLBACK_URL', 'string', 'The callback URL for Apple authentication.', 'APPLE_CALLBACK_URL=/oauth/apple/callback'],
+  ]}
+/>
+
+
 #### [Discord Authentication](/docs/configuration/authentication/OAuth2-OIDC/discord)
 
 For more information: **[Discord](/docs/configuration/authentication/OAuth2-OIDC/discord)**
@@ -793,6 +832,8 @@ For more information: **[GitHub Authentication](/docs/configuration/authenticati
     ['GITHUB_CLIENT_ID', 'string', 'Your GitHub client ID.','GITHUB_CLIENT_ID='],
     ['GITHUB_CLIENT_SECRET', 'string', 'Your GitHub client secret.','GITHUB_CLIENT_SECRET='],
     ['GITHUB_CALLBACK_URL', 'string', 'The callback URL for GitHub authentication.','GITHUB_CALLBACK_URL=/oauth/github/callback'],
+    ['GITHUB_ENTERPRISE_BASE_URL', 'string', 'Optional: The base URL for your GitHub Enterprise instance.', 'GITHUB_ENTERPRISE_BASE_URL='],
+    ['GITHUB_ENTERPRISE_USER_AGENT', 'string', 'Optional: The user agent for GitHub Enterprise requests.', 'GITHUB_ENTERPRISE_USER_AGENT='],
   ]}
 />
 
@@ -983,9 +1024,22 @@ LibreChat supports Google Tag Manager for analytics. You will need a Google Tag 
 
 **Important:** If using Redis, you should flush the cache after changing any LibreChat settings.
 
+If you are using Redis, you will need to set the following variables:
+
+* `REDIS_URI`: The URI for your Redis instance.
+* `USE_REDIS`: Set to `true` to enable Redis.
+* `USE_REDIS_CLUSTER`: Set to `true` to enable Redis Cluster mode.
+* `REDIS_CA`: The path to the PEM-encoded certificate authority file for Redis TLS connections.
+* `REDIS_KEY_PREFIX`: A prefix to be added to all keys in the Redis database. Defaults to empty string if not specified.
+* `REDIS_MAX_LISTENERS`: The maximum number of event listeners allowed for the Redis client instance. It helps prevent memory leaks by limiting event listeners. If set to 0 (zero), it will be considered limitless. Defaults to 10 if not specified.
+
 <OptionTable
   options={[
-    ['REDIS_URI', 'string', 'Redis URI.','# REDIS_URI='],
-    ['USE_REDIS', 'boolean', 'Use Redis.','# USE_REDIS='],
+    ['REDIS_URI', 'string', 'Redis URI.', '# REDIS_URI="10.11.12.13:6379"'],
+    ['USE_REDIS', 'boolean', 'Use Redis.', '# USE_REDIS="true"'],
+    ['USE_REDIS_CLUSTER', 'boolean', 'User Redis Cluster mode', '# USE_REDIS_CLUSTER="true"'],
+    ['REDIS_CA', 'string', 'Path to certificate', '# REDIS_CA="/path/to/file.crt"'],
+    ['REDIS_KEY_PREFIX', 'string', 'Prefix for Redis keys', '# REDIS_KEY_PREFIX="librechat-staging:"'],
+    ['REDIS_MAX_LISTENERS', 'number', 'Maximum number of event listeners allowed for the Redis client instance', '# REDIS_MAX_LISTENERS=20'],
   ]}
 />
