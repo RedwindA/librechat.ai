@@ -17,6 +17,8 @@ These are fields under `interface`:
   - `bookmarks`
   - `multiConvo`
   - `agents`
+  - `customWelcome`
+  - `runCode`
 
 **Notes:**
 
@@ -49,6 +51,8 @@ interface:
   bookmarks: true
   multiConvo: true
   agents: true
+  customWelcome: "Welcome to LibreChat!"
+  runCode: true
 ```
 
 ## privacyPolicy
@@ -242,3 +246,44 @@ More info on [Agents](/docs/features/agents)
 interface:
   agents: true
 ```
+
+---
+
+## customWelcome
+
+**Key:**
+<OptionTable
+  options={[
+    ['customWelcome', 'String', 'Allows administrators to define a custom welcome message for the chat interface.', 'This message will be displayed to users upon entering the chat, providing a personalized greeting.'],
+  ]}
+/>
+
+**Default:** _None (if not specified, a default greeting is used)_
+
+**Example:**
+```yaml filename="interface / customWelcome"
+interface:
+  customWelcome: "Welcome to LibreChat! Enjoy your conversation."
+```
+
+## runCode
+
+Enables/disables the "Run Code" button for Markdown Code Blocks. More info on the [LibreChat Code Interpreter API](/docs/features/code_interpreter)
+
+**Note:** This setting does not disable the [Agents Code Interpreter Capability](/docs/features/agents#code-interpreter). To disable the Agents Capability, see the [Agents Endpoint configuration](/docs/configuration/librechat_yaml/object_structure/agents) instead.
+
+**Key:**
+<OptionTable
+  options={[
+    ['runCode', 'Boolean', 'Enables or disables the "Run Code" button for Markdown Code Blocks.'],
+  ]}
+/>
+
+**Default:** `true`
+
+**Example:**
+```yaml filename="interface / runCode"
+interface:
+  runCode: true
+```
+
